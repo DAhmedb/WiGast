@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>إضافة مريض - الطبيب</title>
+  <!-- Firebase v8 pour compatibilité avec ton code -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+  <h2>إضافة مريض</h2>
+  <form id="addPatientForm">
+    الاسم: <input type="text" id="patientName"><br>
+    العمر: <input type="number" id="patientAge"><br>
+    CH4: <input type="number" id="inputCh4"><br>
+    CO2: <input type="number" id="inputCo2"><br>
+    H2: <input type="number" id="inputH2"><br>
+    <button type="submit">إضافة</button>
+  </form>
+
+  <div id="data">
+    <h2>Lectures des gaz</h2>
+    <p>CH4 : <span id="displayCh4">...</span></p>
+    <p>CO2 : <span id="displayCo2">...</span></p>
+    <p>H2 : <span id="displayH2">...</span></p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      databaseURL: "https://wigast-26ba7-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    document.getElementById("addPatientForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("patientName").value;
+      const data = {
+        age: parseInt(document.getElementById("patientAge").value),
+        CH4: parseFloat(document.getElementById("inputCh4").value),
+        CO2: parseFloat(document.getElementById("inputCo2").value),
+        H2: parseFloat(document.getElementById("inputH2").value)
+      };
+      db.ref("patients/" + name).set(data)
+        .then(() => alert("تمت الإضافة بنجاح"))
+        .catch(error => alert("خطأ: " + error.message));
+    });
+
+    // Données initiales
+    const patients = {
+      "zareb hiba": { age: 22, CH4: 6, H2: 2, CO2: 400 },
+      "ferkazazou balkis": { age: 23, CH4: 12, H2: 8, CO2: 600 },
+      "belroul ikram": { age: 27, CH4: 6, H2: 10, CO2: 400 },
+      "bechaht aya": { age: 23, CH4: 6, H2: 20, CO2: 400 }
+    };
+    Object.entries(patients).forEach(([name, data]) => {
+      db.ref("patients/" + name).set(data);
+    });
+
+    // Lecture périodique des données
+    async function getData() {
+      try {
+        const response = await fetch(" https://5ec4-154-255-37-4.ngrok-free.app/latest"); // Remplace ici
+        const data = await response.json();
+
+        document.getElementById("displayCh4").textContent = data.ch4;
+        document.getElementById("displayCo2").textContent = data.co2;
+        document.getElementById("displayH2").textContent = data.h2;
+      } catch (error) {
+        console.error("Échec de la récupération des données :", error);
+      }
+    }
+
+    setInterval(getData, 8086);
+    getData();
+  </script>
+</body>
+</html>
